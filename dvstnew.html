@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+<meta name="viewport" 
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <meta charset="UTF-8">
+  <title>DvsT New Hack (predictor script)</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
+<link rel="stylesheet" href="./style.css">
+
+</head>
+<body>
+<style>
+html {
+  --color-background: #ffffff;
+  --color-text: #000000;
+  --color-text-light: lightgray;
+  --color-button-start: #0557ff;
+  --color-button-stop: #ff0000;
+  --color-button-text: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  html {
+    --color-background: #000213;
+    --color-text: #a5a8d2;
+    --color-text-light: #444766;
+    --color-button-start: #0557ff;
+    --color-button-stop: #ff0000;
+    --color-button-text: #d8d8d8;
+  }
+}
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background: var(--color-background);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.RandomPicker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  font-family: "Helvetica", sans-serif;
+}
+
+.RandomPicker__choice {
+  display: flex;
+  align-content: center;
+  margin: 0;
+  margin-bottom: 1em;
+  color: var(--color-text);
+  font-size: 60px;
+  font-weight: bold;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.RandomPicker__button {
+  display: block;
+  padding: 0.8em 1.6em;
+  min-width: 160px;
+  color: var(--color-button-text);
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  border: 0;
+  border-radius: 4em;
+  background-color: var(--color-button-start);
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+  cursor: pointer;
+  transition: background-color 250ms ease-in-out, color 150ms ease-in-out;
+}
+.RandomPicker__button--stop {
+  background-color: var(--color-button-stop);
+}
+.RandomPicker__button--reset {
+  color: var(--color-text);
+  font-size: 14px;
+  text-transform: lowercase;
+  background-color: inherit;
+}
+.RandomPicker__button--reset[disabled] {
+  color: var(--color-text-light);
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+
+.RandomPicker__controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.RandomPicker__controls > *:not(:last-child) {
+  margin-bottom: 16px;
+}
+</style>
+
+<!-- partial:index.partial.html -->
+<div id="random-picker"></div>
+<!-- partial -->
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/react/16.8.4/umd/react.production.min.js'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/react-dom/16.8.4/umd/react-dom.production.min.js'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/prop-types/15.7.2/prop-types.min.js'></script>
+
+<script>
+class RandomPicker extends React.PureComponent {
+  constructor() {
+    super();
+
+    this.state = {
+      isRunning: false,
+      currentChoice: '' };
+
+
+    this.interval = null;
+    this.intervalDuration = 25;
+    this.duration = 1000;
+
+    this.start = this.start.bind(this);
+    this.stop = this.stop.bind(this);
+    this.reset = this.reset.bind(this);
+    this.pickChoice = this.pickChoice.bind(this);
+    this.setChoice = this.setChoice.bind(this);
+  }
+
+  start() {
+    clearInterval(this.interval);
+    this.interval = setInterval(this.setChoice, this.intervalDuration);
+    this.setState({ isRunning: true });
+    setTimeout(() => {
+      if (this.state.isRunning) {
+        this.stop();
+      }
+    }, this.duration);
+  }
+
+  stop() {
+    clearInterval(this.interval);
+    this.setState({ isRunning: false });
+  }
+
+  reset() {
+    clearInterval(this.interval);
+    this.setState({ isRunning: false, currentChoice: '' });
+  }
+
+  pickChoice() {
+    const { items } = this.props;
+    const choice = items[Math.floor(Math.random() * items.length)];
+    return choice;
+  }
+
+  setChoice() {
+    this.setState({ currentChoice: this.pickChoice() });
+  }
+
+  render() {
+    const { isRunning, currentChoice } = this.state;
+
+    return /*#__PURE__*/(
+      React.createElement("div", { className: "RandomPicker" }, /*#__PURE__*/
+      React.createElement(RandomPickerChoice, { choice: currentChoice }), /*#__PURE__*/
+      React.createElement(RandomPickerControls, {
+        isRunning: isRunning,
+        hasChoice: currentChoice.trim().length > 0,
+        start: this.start,
+        stop: this.stop,
+        reset: this.reset })));
+
+
+
+  }}
+
+
+RandomPicker.propTypes = {
+  items: PropTypes.array,
+  duration: PropTypes.number };
+
+
+class RandomPickerChoice extends React.PureComponent {
+  render() {
+    const { choice } = this.props;
+    const content = choice.trim().length > 0 ? choice : '?';
+
+    return /*#__PURE__*/(
+      React.createElement("div", { className: "RandomPicker__choice" }, /*#__PURE__*/
+      React.createElement("span", { className: "RandomPicker__choiceItem" }, content)));
+
+
+  }}
+
+
+RandomPickerChoice.propTypes = {
+  choice: PropTypes.string };
+
+
+class RandomPickerControls extends React.PureComponent {
+  render() {
+    const {
+      isRunning,
+      hasChoice,
+      start,
+      stop,
+      reset } =
+    this.props;
+
+    return /*#__PURE__*/(
+      React.createElement("div", { className: "RandomPicker__controls" }, /*#__PURE__*/
+      React.createElement("button", {
+        class: `RandomPicker__button ${isRunning && 'RandomPicker__button--stop'}`,
+        onClick: isRunning ? stop : start },
+
+      isRunning ? 'stop' : 'start'), /*#__PURE__*/
+
+      React.createElement("button", {
+        disabled: isRunning || !hasChoice,
+        class: "RandomPicker__button RandomPicker__button--reset",
+        onClick: reset }, "reset")));
+
+
+
+
+
+  }}
+
+
+RandomPickerControls.propTypes = {
+  isRunning: PropTypes.bool,
+  hasChoice: PropTypes.bool,
+  start: PropTypes.func,
+  stop: PropTypes.func,
+  reset: PropTypes.func };
+
+
+const namesList = [
+'Tiger',
+'Dragon'];
+
+
+ReactDOM.render( /*#__PURE__*/
+React.createElement(RandomPicker, { items: namesList }),
+document.getElementById('random-picker'));
+</script>
+
+</body>
+</html>
+<center>
+<a style="display:block;font-size:16px;font-weight:500;text-align:center;border-radius:8px;padding:5px;background:#389ce9;text-decoration:none;color:#fff;" href="https://t.me/EarningScripter1" target="_blank"><svg style="width:30px;height:20px;vertical-align:middle;margin:0px 5px;" viewBox="0 0 21 18"><g fill="none"><path fill="#ffffff" d="M0.554,7.092 L19.117,0.078 C19.737,-0.156 20.429,0.156 20.663,0.776 C20.745,0.994 20.763,1.23 20.713,1.457 L17.513,16.059 C17.351,16.799 16.62,17.268 15.88,17.105 C15.696,17.065 15.523,16.987 15.37,16.877 L8.997,12.271 C8.614,11.994 8.527,11.458 8.805,11.074 C8.835,11.033 8.869,10.994 8.905,10.958 L15.458,4.661 C15.594,4.53 15.598,4.313 15.467,4.176 C15.354,4.059 15.174,4.037 15.036,4.125 L6.104,9.795 C5.575,10.131 4.922,10.207 4.329,10.002 L0.577,8.704 C0.13,8.55 -0.107,8.061 0.047,7.614 C0.131,7.374 0.316,7.182 0.554,7.092 Z"></path></g></svg>Join Telegram</a>
+.
+<a style="display:block;font-size:16px;font-weight:500;text-align:center;border-radius:8px;padding:5px;background:#a45729;text-decoration:none;color:#fff;" href="https://winnerteenpatti.com/?from_gameid=2348079&channelCode=1823679" target="_blank"><svg style="width:30px;height:20px;vertical-align:middle;margin:0px 5px;" viewBox="0 0 21 18"><g fill="none"><path fill="#FFA500" d="M0.554,7.092 L19.117,0.078 C19.737,-0.156 20.429,0.156 20.663,0.776 C20.745,0.994 20.763,1.23 20.713,1.457 L17.513,16.059 C17.351,16.799 16.62,17.268 15.88,17.105 C15.696,17.065 15.523,16.987 15.37,16.877 L8.997,12.271 C8.614,11.994 8.527,11.458 8.805,11.074 C8.835,11.033 8.869,10.994 8.905,10.958 L15.458,4.661 C15.594,4.53 15.598,4.313 15.467,4.176 C15.354,4.059 15.174,4.037 15.036,4.125 L6.104,9.795 C5.575,10.131 4.922,10.207 4.329,10.002 L0.577,8.704 C0.13,8.55 -0.107,8.061 0.047,7.614 C0.131,7.374 0.316,7.182 0.554,7.092 Z"></path></g></svg>TeenPatti Winner Download</a>
+</center>
